@@ -12,7 +12,8 @@ class Test::Unit::TestCase
   @@default_avm_options = {
       :catalog_path => File.expand_path("~/.xml-catalogs"),
       :validation_service => system("xmllint --version > /dev/null 2>&1") ? :local : :w3c,
-      :dtd_validate => true
+      :dtd_validate => true,
+      :ignore_no_doctype => false
   }
 
   # Assert that markup (html/xhtml) is valid according the W3C validator web service.
@@ -30,7 +31,13 @@ class Test::Unit::TestCase
   #
   def assert_valid_markup(fragment=@response.body, options={})
     opts = @@default_avm_options.merge(options)
-
+    
+    # Give the developer the option to skip responses that do not contain
+    # a valid doctype ( ex. ajax responses, rail's "redirect_to", etc )
+    if opts[:ignore_no_doctype] and (fragment =~ /\A\s*<!DOCTYPE/).nil?
+      return true
+    end
+    
     # html5 validation is a special case
     opts[:validation_service] = :w3c if fragment =~ /\A\s*<!DOCTYPE html>/
 
