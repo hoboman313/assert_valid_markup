@@ -35,7 +35,7 @@ class Test::Unit::TestCase
     # Give the developer the option to skip responses that do not contain
     # a valid doctype ( ex. ajax responses, rail's "redirect_to", etc )
     if opts[:ignore_no_doctype] and (fragment =~ /\A\s*<!DOCTYPE/).nil?
-      return
+      return @response
     end
     
     # html5 validation is a special case
@@ -76,7 +76,7 @@ class Test::Unit::TestCase
       # automatically check markup for all successfull GETs
       define_method(:get_with_assert_valid_markup) do |*args|
         get_without_assert_valid_markup(*args)
-        assert_valid_markup(@response.body, opts) if ! @@skip_validation && @request.format.html? && @response.success?
+        assert_valid_markup(@response.body, opts) if ! @@skip_validation && ! @request.format.nil? && @request.format.html? && @response.success?
       end
       alias_method_chain :get, :assert_valid_markup
     end
