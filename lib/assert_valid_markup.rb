@@ -13,7 +13,9 @@ class Test::Unit::TestCase
       :catalog_path => File.expand_path("~/.xml-catalogs"),
       :validation_service => system("xmllint --version > /dev/null 2>&1") ? :local : :w3c,
       :dtd_validate => true,
-      :ignore_no_doctype => false
+      :ignore_no_doctype => false,
+      :sleep_time => 3,
+      :w3c_max_retries => 3
   }
 
   # Assert that markup (html/xhtml) is valid according the W3C validator web service.
@@ -177,6 +179,21 @@ class Test::Unit::TestCase
         end
         begin
           response = Net::HTTP.start('validator.w3.org').post2('/check', "fragment=#{CGI.escape(fragment)}&output=json")
+          
+          # Try to get a good ( 200 OK ) response from the validator
+          # Be warned, W3C validator returns 502 often
+          if response.code != "200"
+            for i in 1..@@default_avm_options[:w3c_max_retries]
+              puts "WARNING: W3C validator returned HTTP code " + response.code
+              sleep @@default_avm_options[:sleep_time]
+              response = Net::HTTP.start('validator.w3.org').post2('/check', "fragment=#{CGI.escape(fragment)}&output=json")
+              
+              if response.code == "200"
+                break
+              end
+            end
+          end
+          
         ensure
           if defined?(FakeWeb)
             FakeWeb.allow_net_connect = old_net_connect
