@@ -8,7 +8,8 @@ require 'json'
 require 'cgi'
 
 class Test::Unit::TestCase
-
+  @@do_validation = ( defined?(HTML_VALIDATION) ? HTML_VALIDATION : true )
+  
   @@default_avm_options = {
       :catalog_path => File.expand_path("~/.xml-catalogs"),
       :validation_service => system("xmllint --version > /dev/null 2>&1") ? :local : :w3c,
@@ -36,7 +37,7 @@ class Test::Unit::TestCase
     
     # Give the developer the option to skip responses that do not contain
     # a valid doctype ( ex. ajax responses, rail's "redirect_to", etc )
-    if opts[:ignore_no_doctype] and (fragment =~ /\A\s*<!DOCTYPE/).nil?
+    if !@@do_validation or ( opts[:ignore_no_doctype] and (fragment =~ /\A\s*<!DOCTYPE/).nil? )
       return @response
     end
     
