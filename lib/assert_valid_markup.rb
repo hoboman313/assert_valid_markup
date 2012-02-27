@@ -35,7 +35,7 @@ class Test::Unit::TestCase
     # Give the developer the option to skip responses that do not contain
     # a valid doctype ( ex. ajax responses, rail's "redirect_to", etc )
     if opts[:ignore_no_doctype] and (fragment =~ /\A\s*<!DOCTYPE/).nil?
-      return true
+      return
     end
     
     # html5 validation is a special case
